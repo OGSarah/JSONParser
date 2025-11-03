@@ -7,3 +7,5 @@
 Built as a learning exercise in lexical analysis and recursive descent parsing, it supports all JSON data types and nested structures — including proper error reporting with line/column numbers.***
 
 
+| Features |
+|-------|
