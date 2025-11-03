@@ -8,7 +8,7 @@
 ***This project implements a complete, standards-compliant JSON parser in pure Swift, following the official RFC 8259 specification.
 Built as a learning exercise in lexical analysis and recursive descent parsing, it supports all JSON data types and nested structures — including proper error reporting with line/column numbers.***
 
-## Screenshots:
+# Screenshots
 TODO: Add
 
 # Language, Frameworks, & Tools used:
@@ -18,7 +18,7 @@ TODO: Add
 - Xcode 26
 - SwiftLint
 
-## Features 
+# Features: 
 - Zero external dependencies
 - Manual lexer (tokenizer) 
 - Recursive descent parser 
