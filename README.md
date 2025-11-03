@@ -1,3 +1,8 @@
+<div align="center">
+  <img src="" width="300" style="border: 3px solid white; border-radius: 15px; vertical-align: middle; margin-right: 20px;">
+  <h1 style="display: inline-block; vertical-align: middle;">ChatPrototype</h1>
+</div>
+
 # JSONParser - macOS App with SwiftUI
 ![Swift 6+](https://img.shields.io/badge/Swift-6%2B-orange.svg) ![macOS 26](https://img.shields.io/badge/platform-macOS_26-lightgrey.svg)
 
