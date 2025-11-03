@@ -3,6 +3,7 @@
   <h1 style="display: inline-block; vertical-align: middle;">JSONParser - macOS App with SwiftUI</h1>
 </div>
 
+### Currently WIP
 **A Swift macOS app built in SwiftUI that lets you paste, load, or drag-and-drop JSON to validate it using our hand-crafted JSON parser — no `JSONSerialization`, fully custom lexer + parser.**
 
 ***This project implements a complete, standards-compliant JSON parser in pure Swift, following the official RFC 8259 specification.
