@@ -13,5 +13,6 @@ struct JSONParserApp: App {
         WindowGroup {
             ContentView()
         }
+        .windowResizability(.contentSize)
     }
 }
