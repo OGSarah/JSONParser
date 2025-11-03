@@ -6,19 +6,20 @@
 ***This project implements a complete, standards-compliant JSON parser in pure Swift, following the official RFC 8259 specification.
 Built as a learning exercise in lexical analysis and recursive descent parsing, it supports all JSON data types and nested structures — including proper error reporting with line/column numbers.***
 
+## Screenshots:
+TODO: Add
 
-| Features |
-|-------|
-| Zero external dependencies|
-| Manual lexer (tokenizer) |
-| Recursive descent parser |
-| Full JSON Support (Objects `{}`, Arrays `[]`, Strings (with escapes, Unicode `\uXXXX`), Numbers (int, float, scientific notation), Booleans (`true`, `false`), `null`) |
-| Precise error messages with line and column |
-| Drag & drop JSON files |
-| Paste JSON from clipboard |
-| Load from file |
-| Real-time validation | 
-| Rich error reporting with line/column |
-| Syntax highlighting (valid/invalid) |
-| Clean, modern SwiftUI interface |
+## Features 
+- Zero external dependencies
+- Manual lexer (tokenizer) 
+- Recursive descent parser 
+- Full JSON Support (Objects `{}`, Arrays `[]`, Strings (with escapes, Unicode `\uXXXX`), Numbers (int, float, scientific notation), Booleans (`true`, `false`), `null`) 
+- Precise error messages with line and column 
+- Drag & drop JSON files 
+- Paste JSON from clipboard 
+- Load from file 
+- Real-time validation  
+- Rich error reporting with line/column 
+- Syntax highlighting (valid/invalid) 
+- Clean, modern SwiftUI interface 
 
