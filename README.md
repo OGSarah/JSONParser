@@ -9,3 +9,10 @@ Built as a learning exercise in lexical analysis and recursive descent parsing, 
 
 | Features |
 |-------|
+| Zero external dependencies|
+| Manual lexer (tokenizer) |
+| Recursive descent parser |
+| Full JSON Support (Objects `{}`, Arrays `[]`, Strings (with escapes, Unicode `\uXXXX`), Numbers (int, float, scientific notation), Booleans (`true`, `false`), `null`) |
+| Precise error messages with line and column |
+
+
