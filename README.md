@@ -1,9 +1,8 @@
 <div align="center">
-  <img src="" width="300" style="border: 3px solid white; border-radius: 15px; vertical-align: middle; margin-right: 20px;">
-  <h1 style="display: inline-block; vertical-align: middle;">ChatPrototype</h1>
+  <img src="https://github.com/OGSarah/JSONParser/blob/de5a108f09647cf857f0fc1fde07d050808d78bd/Screenshots/AppIcon.png" width="300" style="border: 3px solid white; border-radius: 15px; vertical-align: middle; margin-right: 20px;">
+  <h1 style="display: inline-block; vertical-align: middle;">JSONParser - macOS App with SwiftUI</h1>
 </div>
 
-# JSONParser - macOS App with SwiftUI
 ![Swift 6+](https://img.shields.io/badge/Swift-6%2B-orange.svg) ![macOS 26](https://img.shields.io/badge/platform-macOS_26-lightgrey.svg)
 
 **A Swift macOS app built in SwiftUI that lets you paste, load, or drag-and-drop JSON to validate it using our hand-crafted JSON parser — no `JSONSerialization`, fully custom lexer + parser.**
