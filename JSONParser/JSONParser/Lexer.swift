@@ -6,7 +6,7 @@
 //
 
 class Lexer {
-    private let input: String
+    let input: String
     private var position = Position()
     private var readPosition = 0
     private var char: Character?
@@ -195,4 +195,13 @@ class Lexer {
         return false
     }
 
+}
+
+// MARK: - Lexer Extension for Range
+extension Lexer {
+    func tokenRange(from start: Int) -> Range<String.Index> {
+        let startIdx = input.index(input.startIndex, offsetBy: start)
+        let endIdx = input.index(input.startIndex, offsetBy: readPosition - 1)
+        return startIdx..<endIdx
+    }
 }

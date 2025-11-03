@@ -12,6 +12,7 @@ struct ContentView: View {
     @State private var jsonText: String = ""
     @State private var validationResult: ValidationResult = .none
     @State private var isDragging = false
+    @State private var isParsing = false
 
     private let parser = JSONParser()
 
@@ -19,6 +20,7 @@ struct ContentView: View {
         VStack(spacing: 0) {
             headerView
             editorView
+            controlsView
             resultView
         }
         .frame(minWidth: 700, minHeight: 500)
@@ -54,21 +56,28 @@ struct ContentView: View {
         .overlay(Divider(), alignment: .bottom)
     }
 
-    private var editorView: some View {
-        ScrollView {
-            TextEditor(text: $jsonText)
-                .font(.system(.body, design: .monospaced))
-                .frame(minHeight: 300)
-                .padding(8)
-                .background(editorBackground)
-                .cornerRadius(8)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(borderColor, lineWidth: 1.5)
-                )
-                .padding()
-                .onChange(of: jsonText) { _ in validate() }
+ private var editorView: some View {
+        SyntaxTextView(text: $jsonText)
+            .padding()
+    }
+
+     private var controlsView: some View {
+        HStack {
+            Spacer()
+            
+            Button("Parse") {
+                isParsing = true
+                validationResult = parser.validate(jsonText)
+                isParsing = false
+            }
+            .keyboardShortcut(.return)
+            .disabled(isParsing || jsonText.isEmpty)
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
         }
+        .padding()
+        .background(Color(NSColor.controlBackgroundColor))
+        .overlay(Divider(), alignment: .top)
     }
 
     private var resultView: some View {
