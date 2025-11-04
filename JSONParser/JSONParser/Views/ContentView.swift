@@ -64,7 +64,7 @@ struct ContentView: View {
      private var controlsView: some View {
         HStack {
             Spacer()
-            
+
             Button("Parse") {
                 isParsing = true
                 validationResult = parser.validate(jsonText)
