@@ -11,60 +11,72 @@ class Parser {
     private let lexer: Lexer
     var currentToken: Token
 
-    init(lexer: Lexer) throws {
+    init(lexer: Lexer) {
         self.lexer = lexer
-        self.currentToken = try lexer.nextToken()
-    }
-
-    func parseValue() throws {
-        switch currentToken {
-        case .leftBrace: try parseObject()
-        case .leftBracket: try parseArray()
-        case .string, .number, .bool, .null:
-            advance()
-        default:
-            throw ParseError(message: "Unexpected token \(currentToken) at line ?, column ?")
+        do {
+            self.currentToken = try lexer.nextToken()
+        } catch {
+            self.currentToken = .eof
         }
     }
 
-    // MARK: Private functions
-    private func parseObject() throws {
+    func parseValue() throws -> JSONNode {
+        switch currentToken {
+        case .leftBrace: return try parseObject()
+        case .leftBracket: return try parseArray()
+        case .string(let str): advance(); return .string(str)
+        case .number(let num): advance(); return .number(num)
+        case .bool(let boolean): advance(); return .bool(boolean)
+        case .null: advance(); return .null
+        default:
+            throw ParseError(message: "Unexpected token \(currentToken)")
+        }
+    }
+
+    private func parseObject() throws -> JSONNode {
         try eat(.leftBrace)
+        var dict: [String: JSONNode] = [:]
+
         if currentToken == .rightBrace {
             advance()
-            return
+            return .object(dict)
         }
 
-        try parsePair()
+        try parsePair(into: &dict)
         while currentToken == .comma {
             try eat(.comma)
-            try parsePair()
+            try parsePair(into: &dict)
         }
         try eat(.rightBrace)
+        return .object(dict)
     }
 
-    private func parsePair() throws {
-        guard case .string = currentToken else {
-            throw ParseError(message: "Expected string key, got \(currentToken)")
+    private func parsePair(into dict: inout [String: JSONNode]) throws {
+        guard case .string(let key) = currentToken else {
+            throw ParseError(message: "Expected string key")
         }
         advance()
         try eat(.colon)
-        try parseValue()
+        let value = try parseValue()
+        dict[key] = value
     }
 
-    private func parseArray() throws {
+    private func parseArray() throws -> JSONNode {
         try eat(.leftBracket)
+        var array: [JSONNode] = []
+
         if currentToken == .rightBracket {
             advance()
-            return
+            return .array(array)
         }
 
-        try parseValue()
+        array.append(try parseValue())
         while currentToken == .comma {
             try eat(.comma)
-            try parseValue()
+            array.append(try parseValue())
         }
         try eat(.rightBracket)
+        return .array(array)
     }
 
     private func eat(_ expected: Token) throws {

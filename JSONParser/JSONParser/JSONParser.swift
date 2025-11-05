@@ -8,12 +8,21 @@
 import Foundation
 
 final class JSONParser {
+    func parse(_ input: String) -> (result: ValidationResult, node: JSONNode?) {
+        let lexer = Lexer(input: input)
+        let parser = Parser(lexer: lexer)
 
-    func validate(_ input: String) -> ValidationResult {
-        // let lexer = Lexer(input: input)
-        // TODO: Implement validation using lexer
-        // For now, return .none to satisfy the return type.
-        return .none
+        do {
+            let node = try parser.parseValue()
+            if parser.currentToken != .eof {
+                throw ParseError(message: "Extra data after JSON")
+            }
+            return (.valid, node)
+        } catch let error as ParseError {
+            return (.invalid(error), nil)
+        } catch {
+            return (.invalid(ParseError(message: "Parsing failed: \(error)")), nil)
+        }
     }
 
 }

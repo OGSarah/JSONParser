@@ -11,22 +11,23 @@ internal import UniformTypeIdentifiers
 struct ContentView: View {
     @State private var jsonText: String = ""
     @State private var validationResult: ValidationResult = .none
-    @State private var isDragging = false
+    @State private var parsedNode: JSONNode? = nil
     @State private var isParsing = false
+    @State private var selectedTab: Tab = .editor
 
     private let parser = JSONParser()
+
+    enum Tab { case editor, output }
 
     var body: some View {
         VStack(spacing: 0) {
             headerView
+            tabView
             editorView
             controlsView
             resultView
         }
-        .frame(minWidth: 700, minHeight: 500)
-        .onDrop(of: [.fileURL], isTargeted: $isDragging) { providers in
-            handleDrop(providers)
-        }
+        .frame(minWidth: 800, minHeight: 600)
     }
 
     private var headerView: some View {
@@ -40,7 +41,6 @@ struct ContentView: View {
             Button("Paste") {
                 if let clipboard = NSPasteboard.general.string(forType: .string) {
                     jsonText = clipboard
-                    validate()
                 }
             }
             .keyboardShortcut("v", modifiers: [.command])
@@ -48,6 +48,8 @@ struct ContentView: View {
             Button("Clear") {
                 jsonText = ""
                 validationResult = .none
+                parsedNode = nil
+                selectedTab = .editor
             }
             .keyboardShortcut("k", modifiers: [.command])
         }
@@ -56,19 +58,41 @@ struct ContentView: View {
         .overlay(Divider(), alignment: .bottom)
     }
 
- private var editorView: some View {
-        SyntaxTextView(text: $jsonText)
-            .padding()
+    private var tabView: some View {
+        HStack {
+            TabButton(title: "Input", systemImage: "doc.text", isSelected: selectedTab == .editor) {
+                selectedTab = .editor
+            }
+            TabButton(title: "Output", systemImage: "rectangle.expand.vertical", isSelected: selectedTab == .output) {
+                selectedTab = .output
+            }
+            .disabled(parsedNode == nil)
+            Spacer()
+        }
+        .padding(.horizontal)
+        .padding(.top, 8)
+        .background(Color(NSColor.controlBackgroundColor))
     }
 
-     private var controlsView: some View {
+    private var editorView: some View {
+        Group {
+            if selectedTab == .editor {
+                SyntaxTextView(text: $jsonText)
+                    .padding()
+            } else if let node = parsedNode {
+                OutputTreeView(node: node)
+                    .padding()
+            }
+        }
+        .frame(maxHeight: .infinity)
+    }
+
+    private var controlsView: some View {
         HStack {
             Spacer()
 
             Button("Parse") {
-                isParsing = true
-                validationResult = parser.validate(jsonText)
-                isParsing = false
+                parseJSON()
             }
             .keyboardShortcut(.return)
             .disabled(isParsing || jsonText.isEmpty)
@@ -84,11 +108,11 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 8) {
             switch validationResult {
             case .none:
-                Text("Paste or drop JSON to validate")
+                Text("Click **Parse** to validate and view JSON")
                     .foregroundColor(.secondary)
                     .italic()
             case .valid:
-                Label("Valid JSON", systemImage: "checkmark.circle.fill")
+                Label("Valid JSON – Parsed successfully", systemImage: "checkmark.circle.fill")
                     .foregroundColor(.green)
                     .font(.title3)
                     .fontWeight(.medium)
@@ -109,43 +133,26 @@ struct ContentView: View {
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(NSColor.controlBackgroundColor))
+        .background(resultBackground)
     }
 
-    private var editorBackground: Color {
+    private var resultBackground: Color {
         switch validationResult {
         case .valid: return Color.green.opacity(0.08)
         case .invalid: return Color.red.opacity(0.08)
-        default: return Color.clear
+        default: return Color(NSColor.controlBackgroundColor)
         }
     }
 
-    private var borderColor: Color {
-        switch validationResult {
-        case .valid: return .green
-        case .invalid: return .red
-        default: return Color(NSColor.separatorColor)
+    private func parseJSON() {
+        isParsing = true
+        let result = parser.parse(jsonText)
+        validationResult = result.result
+        parsedNode = result.node
+        if case .valid = result.result {
+            selectedTab = .output
         }
-    }
-
-    private func validate() {
-        validationResult = parser.validate(jsonText)
-    }
-
-    private func handleDrop(_ providers: [NSItemProvider]) -> Bool {
-        guard let provider = providers.first else { return false }
-
-        provider.loadItem(forTypeIdentifier: "public.file-url") { data, _ in
-            guard let urlData = data as? Data,
-                  let url = URL(dataRepresentation: urlData, relativeTo: nil),
-                  let content = try? String(contentsOf: url, encoding: .utf8) else { return }
-
-            DispatchQueue.main.async {
-                jsonText = content
-                validate()
-            }
-        }
-        return true
+        isParsing = false
     }
 }
 
