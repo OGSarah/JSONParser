@@ -47,8 +47,7 @@ struct JSONNodeView: View {
             Text("\"\(str)\"")
                 .foregroundColor(.green)
         case .number(let num):
-            Text(num.truncatingRemainder(dividingBy: 1) == 0 ?
-                 "\(Int(num))" : "\(num)")
+            Text(formattedNumber(num))
                 .foregroundColor(.orange)
         case .bool(let bool):
             Text(bool ? "true" : "false")
@@ -57,6 +56,29 @@ struct JSONNodeView: View {
             Text("null")
                 .foregroundColor(.purple)
         }
+    }
+
+    // Formats numbers without trailing ".0" if integral, and avoids Int overflow.
+    private func formattedNumber(_ value: Double) -> String {
+        // If it's integral, format with zero fraction digits.
+        if value.isFinite, value.rounded(.towardZero) == value {
+            let numFormatter = NumberFormatter()
+            numFormatter.locale = Locale(identifier: "en_US_POSIX")
+            numFormatter.numberStyle = .decimal
+            numFormatter.maximumFractionDigits = 0
+            numFormatter.usesGroupingSeparator = false
+            if let s = numFormatter.string(from: NSNumber(value: value)) {
+                return s
+            }
+        }
+        // Fallback: format with up to 15 fraction digits to preserve typical JSON precision
+        let nf = NumberFormatter()
+        nf.locale = Locale(identifier: "en_US_POSIX")
+        nf.numberStyle = .decimal
+        nf.maximumFractionDigits = 15
+        nf.minimumFractionDigits = 0
+        nf.usesGroupingSeparator = false
+        return nf.string(from: NSNumber(value: value)) ?? String(value)
     }
 
     @ViewBuilder
