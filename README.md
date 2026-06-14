@@ -61,7 +61,11 @@ The app is built to work with VoiceOver from the start:
 
 ## Screenshots
 
-The app icon lives in `Screenshots/`. Window screenshots can be regenerated from the `JSONParserUITestsLaunchTests` launch test, which attaches a captured image to its result bundle.
+Here are some screenshots showcasing the app's features in dark mode:
+
+| Validate & explore | Precise errors | Syntax highlighting |
+| :---: | :---: | :---: |
+| ![Validate and explore](Screenshots/explore_dark.png) | ![Precise errors](Screenshots/errors_dark.png) | ![Syntax highlighting](Screenshots/highlighting_dark.png) |
 
 
 ## Language, Frameworks, and Tools
