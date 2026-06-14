@@ -1,4 +1,8 @@
 {
+  "features" : [
+    "refractivity",
+    "specular-location"
+  ],
   "fill" : {
     "linear-gradient" : [
       "srgb:0.00000,0.32852,0.57488,1.00000",
@@ -17,7 +21,7 @@
         },
         {
           "appearance" : "tinted",
-          "value" : "plus-darker"
+          "value" : "screen"
         }
       ],
       "layers" : [
@@ -60,68 +64,55 @@
           -18.625
         ]
       },
-      "shadow" : {
-        "kind" : "layer-color",
-        "opacity" : 0.5
-      },
+      "refractivity-specializations" : [
+        {
+          "appearance" : "tinted",
+          "value" : {
+            "depth" : 0,
+            "enabled" : true,
+            "strength" : 0.5
+          }
+        }
+      ],
+      "shadow-specializations" : [
+        {
+          "value" : {
+            "kind" : "layer-color",
+            "opacity" : 0.5
+          }
+        },
+        {
+          "appearance" : "tinted",
+          "value" : {
+            "kind" : "layer-color",
+            "opacity" : 1.6
+          }
+        }
+      ],
       "specular-specializations" : [
         {
           "value" : true
         },
         {
           "appearance" : "tinted",
-          "value" : false
+          "value" : "inside"
         }
       ],
-      "translucency" : {
-        "enabled" : true,
-        "value" : 0.5
-      }
-    },
-    {
-      "blend-mode-specializations" : [
+      "translucency-specializations" : [
         {
-          "value" : "soft-light"
+          "value" : {
+            "enabled" : true,
+            "value" : 0.5
+          }
         },
         {
           "appearance" : "tinted",
-          "value" : "lighten"
-        }
-      ],
-      "blur-material" : 0.5,
-      "hidden" : false,
-      "layers" : [
-        {
-          "blend-mode-specializations" : [
-            {
-              "value" : "lighten"
-            },
-            {
-              "appearance" : "tinted",
-              "value" : "plus-lighter"
-            }
-          ],
-          "image-name" : "text.word.spacing.png",
-          "name" : "text.word.spacing",
-          "position" : {
-            "scale" : 3.5,
-            "translation-in-points" : [
-              32.296875,
-              31.5625
-            ]
+          "value" : {
+            "enabled" : true,
+            "value" : 0.5
           }
         }
-      ],
-      "lighting" : "individual",
-      "shadow" : {
-        "kind" : "neutral",
-        "opacity" : 0.5
-      },
-      "specular" : false,
-      "translucency" : {
-        "enabled" : true,
-        "value" : 0.5
-      }
+      ]
     }
   ],
   "supported-platforms" : {
