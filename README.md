@@ -99,6 +99,27 @@ The protocol seams make the business logic testable without the UI. Pure logic s
 | `JSONParserUITests` | UI | Launch, parse valid and invalid, clear, paste, and identifier presence; hermetic via the `-uiTest` launch arguments. |
 
 
+## Continuous Integration
+
+Every push and pull request to `main` runs two independent [GitHub Actions](.github/workflows) workflows on a `macos-26` runner with the latest stable Xcode 26. The status badges at the top of this file reflect the most recent run on `main`.
+
+| Workflow | What it does |
+|:---|:---|
+| [`tests.yml`](.github/workflows/tests.yml) | Builds the app and runs the `JSONParserTests` logic suite via `xcodebuild test` against the `platform=macOS` destination, then uploads the `.xcresult` bundle as an artifact for inspection. |
+| [`swiftlint.yml`](.github/workflows/swiftlint.yml) | Lints the full source tree with SwiftLint in `--strict` mode, so any warning fails the build and surfaces inline through `github-actions-logging`. |
+
+**Pipeline decisions**
+
+| Decision | Why |
+|:---|:---|
+| `--strict` SwiftLint as a required check | Style and lint warnings are treated as errors, so the `main` branch stays warning clean rather than accumulating drift. |
+| `concurrency` with `cancel-in-progress` | A new push to a branch cancels its superseded runs, saving runner minutes and giving faster feedback on the latest commit. |
+| `CODE_SIGNING_ALLOWED=NO` | CI builds and tests without a signing identity, so the pipeline needs no secrets and runs identically for forks and pull requests. |
+| `EXCLUDED_SOURCE_FILE_NAMES='*.icon'` | The Icon Composer `AppIcon.icon` is authored by a newer toolchain than the runner's `actool`, which crashes compiling it; excluding it lets the legacy `.appiconset` provide the icon while the build stays green. |
+| Always-upload `.xcresult` artifact | Test results are retained even on failure, so a red run can be downloaded and opened in Xcode to triage without re-running locally. |
+| Pinned `macos-26` / latest-stable Xcode | The runner image matches the project's macOS 26 / Xcode 26 target, so CI compiles against the same SDK and concurrency model as local development. |
+
+
 ## License
 
 Released under the [MIT License](LICENSE). © 2026 SarahUniverse
