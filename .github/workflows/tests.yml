@@ -29,9 +29,13 @@ jobs:
           swift --version
 
       - name: Build and test
-        # The app icon is an Icon Composer .icon authored by a newer toolchain
-        # than the runner's actool, which crashes compiling it. The icon is not
-        # needed to run unit tests, so it is disabled for the CI build only.
+        # AppIcon.icon is an Icon Composer file authored by a newer toolchain
+        # than the runner's actool, which crashes while compiling it. Because the
+        # project uses file-system synchronized groups, the .icon is an automatic
+        # build input, so simply clearing ASSETCATALOG_COMPILER_APPICON_NAME does
+        # not stop actool from scanning it. EXCLUDED_SOURCE_FILE_NAMES removes the
+        # file from the build entirely; the legacy AppIcon.appiconset still
+        # provides the icon and compiles fine on the older toolchain.
         run: |
           xcodebuild test \
             -project JSONParser/JSONParser.xcodeproj \
@@ -40,8 +44,7 @@ jobs:
             -only-testing:JSONParserTests \
             -resultBundlePath TestResults.xcresult \
             CODE_SIGNING_ALLOWED=NO \
-            ASSETCATALOG_COMPILER_APPICON_NAME= \
-            ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS=NO
+            EXCLUDED_SOURCE_FILE_NAMES='*.icon'
 
       - name: Upload test results
         if: always()

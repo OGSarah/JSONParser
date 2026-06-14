@@ -64,8 +64,7 @@ struct SyntaxTextView: NSViewRepresentable {
         }
 
         func highlightSyntax(in textView: NSTextView) {
-            guard let layoutManager = textView.layoutManager,
-                  let textStorage = textView.textStorage else { return }
+            guard let textStorage = textView.textStorage else { return }
 
             let input = textView.string
             let range = NSRange(input.startIndex..., in: input)
