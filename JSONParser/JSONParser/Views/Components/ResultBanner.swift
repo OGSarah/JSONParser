@@ -112,7 +112,8 @@ struct ResultBanner: View {
     }
 }
 
-#Preview("States") {
+// MARK: Previews
+#Preview("Light") {
     VStack(spacing: 16) {
         ResultBanner(result: .none)
         ResultBanner(result: .valid)
@@ -120,4 +121,16 @@ struct ResultBanner: View {
     }
     .padding()
     .frame(width: 420)
+    .preferredColorScheme(.light)
+}
+
+#Preview("Dark") {
+    VStack(spacing: 16) {
+        ResultBanner(result: .none)
+        ResultBanner(result: .valid)
+        ResultBanner(result: .invalid(ParseError(message: "Unexpected token at line 2, column 7", line: 2, column: 7)))
+    }
+    .padding()
+    .frame(width: 420)
+    .preferredColorScheme(.dark)
 }

@@ -171,7 +171,7 @@ struct JSONNodeView: View {
     }
 }
 
-#Preview {
+#Preview("Light") {
     JSONNodeView(
         node: .object([
             "name": .string("JSON Parser"),
@@ -181,4 +181,18 @@ struct JSONNodeView: View {
         depth: 0
     )
     .padding()
+    .preferredColorScheme(.light)
+}
+
+#Preview("Dark") {
+    JSONNodeView(
+        node: .object([
+            "name": .string("JSON Parser"),
+            "count": .number(3),
+            "nested": .array([.bool(true), .null])
+        ]),
+        depth: 0
+    )
+    .padding()
+    .preferredColorScheme(.dark)
 }

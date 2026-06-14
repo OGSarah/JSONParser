@@ -49,7 +49,8 @@ struct OutputTreeView: View {
     }
 }
 
-#Preview {
+// MARK: Previews
+#Preview("Light") {
     OutputTreeView(
         node: .object([
             "name": .string("JSON Parser"),
@@ -59,4 +60,18 @@ struct OutputTreeView: View {
     )
     .padding()
     .frame(width: 420, height: 320)
+    .preferredColorScheme(.light)
+}
+
+#Preview("Dark") {
+    OutputTreeView(
+        node: .object([
+            "name": .string("JSON Parser"),
+            "valid": .bool(true),
+            "tags": .array([.string("swift"), .string("macOS")])
+        ])
+    )
+    .padding()
+    .frame(width: 420, height: 320)
+    .preferredColorScheme(.dark)
 }

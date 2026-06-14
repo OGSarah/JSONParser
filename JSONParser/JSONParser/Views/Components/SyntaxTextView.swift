@@ -134,3 +134,14 @@ struct SyntaxTextView: NSViewRepresentable {
     }
 
 }
+
+// MARK: Previews
+#Preview("Light") {
+    SyntaxTextView(text: .constant("Hello, World!"))
+        .preferredColorScheme(.light)
+}
+
+#Preview("Dark") {
+    SyntaxTextView(text: .constant("Hello, World!"))
+        .preferredColorScheme(.dark)
+}
