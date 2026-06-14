@@ -6,153 +6,94 @@
 //
 
 import SwiftUI
-internal import UniformTypeIdentifiers
 
+/// The root screen: a two column split with the JSON editor on the leading side
+/// and the parsed output tree on the trailing side, driven by ``ParserViewModel``.
 struct ContentView: View {
-    @State private var jsonText: String = ""
-    @State private var validationResult: ValidationResult = .none
-    @State private var parsedNode: JSONNode? = nil
-    @State private var isParsing = false
-    @State private var selectedTab: Tab = .editor
+    @State private var viewModel: ParserViewModel
 
-    private let parser = JSONParser()
-
-    enum Tab { case editor, output }
+    init(viewModel: ParserViewModel? = nil) {
+        self.viewModel = viewModel ?? ParserViewModel()
+    }
 
     var body: some View {
-        VStack(spacing: 0) {
-            headerView
-            tabView
-            editorView
-            controlsView
-            resultView
+        NavigationSplitView {
+            editorColumn
+                .navigationSplitViewColumnWidth(min: 320, ideal: 460)
+                .navigationTitle("Input")
+        } detail: {
+            outputColumn
+                .navigationTitle("Output")
         }
-        .frame(minWidth: 800, minHeight: 600)
+        .toolbar { toolbarContent }
+        .frame(minWidth: 900, minHeight: 600)
     }
 
-    private var headerView: some View {
-        HStack {
-            Label("JSON Parser", systemImage: "curlybraces")
-                .font(.title2)
-                .fontWeight(.semibold)
+    // MARK: - Editor Column
 
-            Spacer()
+    private var editorColumn: some View {
+        SyntaxTextView(text: $viewModel.jsonText)
+            .accessibilityIdentifier(AccessibilityID.jsonEditor)
+            .accessibilityLabel("JSON input editor")
+            .accessibilityHint("Enter or paste the JSON you want to validate.")
+    }
 
-            Button("Paste") {
-                if let clipboard = NSPasteboard.general.string(forType: .string) {
-                    jsonText = clipboard
-                }
+    // MARK: - Output Column
+
+    private var outputColumn: some View {
+        Group {
+            if let node = viewModel.parsedNode {
+                OutputTreeView(node: node)
+            } else {
+                emptyOutputState
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .safeAreaInset(edge: .bottom) {
+            ResultBanner(result: viewModel.validationResult)
+                .padding([.horizontal, .bottom])
+        }
+    }
+
+    private var emptyOutputState: some View {
+        ContentUnavailableView(
+            "No Parsed Output",
+            systemImage: "curlybraces.square",
+            description: Text("Parse a valid JSON document to explore its structure here.")
+        )
+        .accessibilityIdentifier(AccessibilityID.outputEmptyState)
+    }
+
+    // MARK: - Toolbar
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItemGroup(placement: .primaryAction) {
+            Button("Paste", systemImage: "doc.on.clipboard") {
+                viewModel.paste()
             }
             .keyboardShortcut("v", modifiers: [.command])
+            .accessibilityIdentifier(AccessibilityID.pasteButton)
+            .accessibilityHint("Replaces the editor contents with the clipboard text.")
 
-            Button("Clear") {
-                jsonText = ""
-                validationResult = .none
-                parsedNode = nil
-                selectedTab = .editor
+            Button("Clear", systemImage: "trash") {
+                viewModel.clear()
             }
             .keyboardShortcut("k", modifiers: [.command])
-        }
-        .padding()
-        .background(Color(NSColor.windowBackgroundColor))
-        .overlay(Divider(), alignment: .bottom)
-    }
+            .disabled(viewModel.jsonText.isEmpty)
+            .accessibilityIdentifier(AccessibilityID.clearButton)
+            .accessibilityHint("Clears the editor and the parsed output.")
 
-    private var tabView: some View {
-        HStack {
-            TabButton(title: "Input", systemImage: "doc.text", isSelected: selectedTab == .editor) {
-                selectedTab = .editor
+            Button("Parse", systemImage: "play.fill") {
+                viewModel.parse()
             }
-            TabButton(title: "Output", systemImage: "rectangle.expand.vertical", isSelected: selectedTab == .output) {
-                selectedTab = .output
-            }
-            .disabled(parsedNode == nil)
-            Spacer()
-        }
-        .padding(.horizontal)
-        .padding(.top, 8)
-        .background(Color(NSColor.controlBackgroundColor))
-    }
-
-    private var editorView: some View {
-        Group {
-            if selectedTab == .editor {
-                SyntaxTextView(text: $jsonText)
-                    .padding()
-            } else if let node = parsedNode {
-                OutputTreeView(node: node)
-                    .padding()
-            }
-        }
-        .frame(maxHeight: .infinity)
-    }
-
-    private var controlsView: some View {
-        HStack {
-            Spacer()
-
-            Button("Parse") {
-                parseJSON()
-            }
-            .keyboardShortcut(.return)
-            .disabled(isParsing || jsonText.isEmpty)
+            .keyboardShortcut(.return, modifiers: [])
+            .disabled(!viewModel.canParse)
             .buttonStyle(.borderedProminent)
-            .controlSize(.large)
+            .accessibilityIdentifier(AccessibilityID.parseButton)
+            .accessibilityHint("Validates the JSON and shows its structure.")
         }
-        .padding()
-        .background(Color(NSColor.controlBackgroundColor))
-        .overlay(Divider(), alignment: .top)
-    }
-
-    private var resultView: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            switch validationResult {
-            case .none:
-                Text("Click **Parse** to validate and view JSON")
-                    .foregroundColor(.secondary)
-                    .italic()
-            case .valid:
-                Label("Valid JSON – Parsed successfully", systemImage: "checkmark.circle.fill")
-                    .foregroundColor(.green)
-                    .font(.title3)
-                    .fontWeight(.medium)
-            case .invalid(let error):
-                VStack(alignment: .leading, spacing: 6) {
-                    Label("Invalid JSON", systemImage: "xmark.circle.fill")
-                        .foregroundColor(.red)
-                        .font(.title3)
-                        .fontWeight(.medium)
-
-                    Text(error.message)
-                        .font(.system(.body, design: .monospaced))
-                        .foregroundColor(.secondary)
-                        .padding(.leading, 4)
-                        .textSelection(.enabled)
-                }
-            }
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(resultBackground)
-    }
-
-    private var resultBackground: Color {
-        switch validationResult {
-        case .valid: return Color.green.opacity(0.08)
-        case .invalid: return Color.red.opacity(0.08)
-        default: return Color(NSColor.controlBackgroundColor)
-        }
-    }
-
-    private func parseJSON() {
-        isParsing = true
-        let result = parser.parse(jsonText)
-        validationResult = result.result
-        parsedNode = result.node
-        if case .valid = result.result {
-            selectedTab = .output
-        }
-        isParsing = false
     }
 }
 

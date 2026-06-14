@@ -3,35 +3,93 @@
   <h1 style="display: inline-block; vertical-align: middle;">JSONParser</h1>
 </div>
 
-### Currently WIP
-**A Swift macOS app built in SwiftUI that lets you paste, load, or drag-and-drop JSON to validate it using our hand-crafted JSON parser — no `JSONSerialization`, fully custom lexer + parser.**
+[![SwiftLint](https://github.com/OGSarah/JSONParser/actions/workflows/swiftlint.yml/badge.svg)](https://github.com/OGSarah/JSONParser/actions/workflows/swiftlint.yml)
+[![Unit Tests](https://github.com/OGSarah/JSONParser/actions/workflows/tests.yml/badge.svg)](https://github.com/OGSarah/JSONParser/actions/workflows/tests.yml)
 
-***This project implements a complete, standards-compliant JSON parser in pure Swift, following the official RFC 8259 specification.
-Built as a learning exercise in lexical analysis and recursive descent parsing, it supports all JSON data types and nested structures — including proper error reporting with line/column numbers.***
+A native macOS app built with SwiftUI that validates and explores JSON using a hand written parser. It implements the RFC 8259 grammar with a custom lexer and recursive descent parser, with no use of `Foundation`'s `JSONSerialization`. Paste or type JSON, parse it, and browse the result as a collapsible tree with precise, line and column aware error reporting.
 
-# Screenshots
-TODO: Add
 
-# Language, Frameworks, & Tools used:
-- Swift
-- SwiftUI
-- macOS 26
-- Xcode 26
+## Architecture
+
+The app follows a layered, testable design. Views own no business logic; all screen state lives in an `@Observable` view model that depends only on protocols, so each layer is replaceable and unit testable in isolation. The lexer and parser are pure, `nonisolated` value and reference types with no UI dependencies.
+
+```
+App/         JSONParserApp (@main); injects a hermetic view model under UI test
+Models/      JSONNode, Token, Position, ValidationResult (+ ParseError with line/column)
+Services/    JSONParsing  -> JSONParser  (lexer + recursive descent parser)
+             Lexer, Parser (RFC 8259), PasteboardReading -> SystemPasteboard
+ViewModels/  ParserViewModel (@Observable, @MainActor)
+Views/       ContentView (NavigationSplitView shell)
+  Components/  SyntaxTextView, OutputTreeView, JSONNodeView, ResultBanner
+Support/     AccessibilityIdentifiers, UITestSupport (DEBUG only)
+```
+
+**Key decisions**
+
+| Decision | Why |
+|:---|:---|
+| `@Observable` view model, no Combine | Modern Swift state; one view model owns all screen state and is tested through mocks. |
+| `JSONParsing` protocol seam | The view model depends on an abstraction, so tests inject a stub and never run the real parser. |
+| `PasteboardReading` protocol | Paste behavior is unit tested without touching `NSPasteboard`. |
+| Typed `ParseError` with line and column | Call sites and tests read the exact location of a failure rather than parsing a string. |
+| `nonisolated` lexer and parser | Pure parsing logic is thread agnostic and free of the project wide default `@MainActor` isolation. |
+| Hermetic UI tests via launch arguments | A DEBUG `StubJSONParser` makes UI flows deterministic and independent of the real parser. |
+| Synchronized Xcode folder groups | The folder layout above is the project structure, so files move without editing `project.pbxproj`. |
+
+
+## Features
+
+- **Validate**: parse pasted or typed JSON and see a clear valid or invalid result.
+- **Explore**: browse valid documents as an indented, collapsible tree of objects, arrays, and scalars.
+- **Precise errors**: invalid input surfaces a typed error with its line and column.
+- **Syntax highlighting**: the editor colorizes strings, numbers, booleans, null, and punctuation as you type.
+- **Full JSON support**: objects, arrays, strings with escapes and `\uXXXX`, numbers with fractions and exponents, booleans, and null.
+- **Keyboard first**: Parse (Return), Paste (Command V), and Clear (Command K).
+- **Accessibility built in**: VoiceOver labels, traits, and hints throughout, plus stable identifiers backing the UI tests.
+
+
+## Accessibility
+
+The app is built to work with VoiceOver from the start:
+
+- Every control has a spoken label and hint. Parse, Paste, and Clear each describe what they do.
+- The result banner reads as a single element, announcing either "Valid JSON. Parsed successfully." or "Invalid JSON." followed by the specific error.
+- Tree rows for scalar values combine into one element, so VoiceOver reads "key, value" in a single swipe, while container rows stay navigable and expose the Header and Button traits with an expanded or collapsed value.
+- Decorative glyphs (chevrons, folder and list icons, the banner icon) are hidden from VoiceOver to cut announcement noise.
+- Stable accessibility identifiers back the UI test suite, so a renamed identifier breaks the tests rather than silently regressing.
+
+
+## Screenshots
+
+The app icon lives in `Screenshots/`. Window screenshots can be regenerated from the `JSONParserUITestsLaunchTests` launch test, which attaches a captured image to its result bundle.
+
+
+## Language, Frameworks, and Tools
+
+- Swift with strict, approachable concurrency and default `@MainActor` isolation
+- SwiftUI and Observation (`@Observable`)
+- AppKit interop (`NSTextView`) for the syntax highlighted editor
+- macOS 26 / Xcode 26
+- Swift Testing (logic and view model) plus XCTest and XCUIAutomation (UI)
 - SwiftLint
+- GitHub Actions (CI)
 
-# Features: 
-- Zero external dependencies
-- Manual lexer (tokenizer) 
-- Recursive descent parser 
-- Full JSON Support (Objects `{}`, Arrays `[]`, Strings (with escapes, Unicode `\uXXXX`), Numbers (int, float, scientific notation), Booleans (`true`, `false`), `null`) 
-- Precise error messages with line and column 
-- Drag & drop JSON files 
-- Paste JSON from clipboard 
-- Load from file 
-- Real-time validation  
-- Rich error reporting with line/column 
-- Syntax highlighting (valid/invalid) 
-- Clean, modern SwiftUI interface 
+
+## Testing
+
+The protocol seams make the business logic testable without the UI. Pure logic suites use **Swift Testing** (`@Suite` / `@Test` / `#expect`); UI flows use **XCUIAutomation**, since Swift Testing cannot drive UI automation.
+
+| Suite | Layer | Coverage |
+|:---|:---|:---|
+| `LexerTests` | Lexer | Structural tokens, string escapes including `\uXXXX`, number forms, and errors with line and column. |
+| `ParserTests` | Parser | Empty, nested, and mixed structures; trailing commas, missing colons, non string keys, and unclosed containers. |
+| `JSONParserFacadeTests` | Facade | End to end valid and invalid documents, trailing data rejection, and outcome equality. |
+| `JSONNodeTests` | Model | Deep equality, key order independence, and the leaf classification. |
+| `ValidationResultTests` | Model | `ValidationResult` and `ParseError` equality, including line and column. |
+| `PositionTests` | Model | Column advance and newline tracking. |
+| `ParserViewModelTests` | View model | Valid and invalid paths, pane switching, paste, clear, and derived state, against a mock parser and pasteboard. |
+| `JSONParserUITests` | UI | Launch, parse valid and invalid, clear, paste, and identifier presence; hermetic via the `-uiTest` launch arguments. |
+
 
 ## License
 

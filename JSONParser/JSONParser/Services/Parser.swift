@@ -5,9 +5,8 @@
 //  Created by Sarah Clark on 11/3/25.
 //
 
-import Foundation
-
-class Parser {
+/// A recursive descent parser that turns a ``Lexer`` token stream into a ``JSONNode`` tree.
+nonisolated final class Parser {
     private let lexer: Lexer
     var currentToken: Token
 
@@ -29,7 +28,7 @@ class Parser {
         case .bool(let boolean): advance(); return .bool(boolean)
         case .null: advance(); return .null
         default:
-            throw ParseError(message: "Unexpected token \(currentToken)")
+            throw error("Unexpected token \(currentToken)")
         }
     }
 
@@ -53,7 +52,7 @@ class Parser {
 
     private func parsePair(into dict: inout [String: JSONNode]) throws {
         guard case .string(let key) = currentToken else {
-            throw ParseError(message: "Expected string key")
+            throw error("Expected string key")
         }
         advance()
         try eat(.colon)
@@ -83,7 +82,7 @@ class Parser {
         if currentToken == expected {
             advance()
         } else {
-            throw ParseError(message: "Expected \(expected), got \(currentToken)")
+            throw error("Expected \(expected), got \(currentToken)")
         }
     }
 
@@ -95,4 +94,13 @@ class Parser {
         }
     }
 
+    /// Builds a ``ParseError`` annotated with the lexer's current position.
+    private func error(_ message: String) -> ParseError {
+        let position = lexer.currentPosition
+        return ParseError(
+            message: "\(message) at line \(position.line), column \(position.column)",
+            line: position.line,
+            column: position.column
+        )
+    }
 }

@@ -4,38 +4,109 @@
 //
 //  Created by Sarah Clark on 11/3/25.
 //
+//  Note: UI automation uses XCTest / XCUIAutomation; Swift Testing cannot drive
+//  the UI. These flows are made hermetic with launch arguments that inject a
+//  stubbed parser and pasteboard, so they never depend on the real parser.
 
 import XCTest
 
 final class JSONParserUITests: XCTestCase {
 
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-
-        // In UI tests it is usually best to stop immediately when a failure occurs.
         continueAfterFailure = false
-
-        // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
     }
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-    }
+    // MARK: - Helpers
 
-    @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
+    private func launch(_ arguments: [String]) -> XCUIApplication {
         let app = XCUIApplication()
+        app.launchArguments = ["-uiTest"] + arguments
         app.launch()
+        return app
+    }
 
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+    /// Finds an element with the given identifier regardless of its element type.
+    private func element(_ identifier: String, in app: XCUIApplication) -> XCUIElement {
+        app.descendants(matching: .any).matching(identifier: identifier).firstMatch
+    }
+
+    // MARK: - Tests
+
+    @MainActor
+    func testLaunchShowsEditorWithParseDisabled() {
+        let app = launch(["-uiTestStub", "valid"])
+
+        XCTAssertTrue(app.textViews[AccessibilityID.jsonEditor].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons[AccessibilityID.parseButton].exists)
+        XCTAssertFalse(
+            app.buttons[AccessibilityID.parseButton].isEnabled,
+            "Parse should be disabled when the editor is empty."
+        )
     }
 
     @MainActor
-    func testLaunchPerformance() throws {
-        // This measures how long it takes to launch your application.
-        measure(metrics: [XCTApplicationLaunchMetric()]) {
-            XCUIApplication().launch()
-        }
+    func testParseValidShowsOutputTree() {
+        let app = launch(["-uiTestStub", "valid", "-uiTestSeedText", "{\"a\": 1}"])
+
+        let parseButton = app.buttons[AccessibilityID.parseButton]
+        XCTAssertTrue(parseButton.waitForExistence(timeout: 5))
+        XCTAssertTrue(parseButton.isEnabled)
+        parseButton.click()
+
+        // A valid parse renders the tree and shows no error message.
+        XCTAssertTrue(element(AccessibilityID.outputTree, in: app).waitForExistence(timeout: 5))
+        XCTAssertTrue(element(AccessibilityID.resultBanner, in: app).exists)
+        XCTAssertFalse(element(AccessibilityID.resultErrorMessage, in: app).exists)
+    }
+
+    @MainActor
+    func testParseInvalidShowsError() {
+        let app = launch(["-uiTestStub", "invalid", "-uiTestSeedText", "{"])
+
+        app.buttons[AccessibilityID.parseButton].click()
+
+        // An invalid parse shows the empty output state and the result banner,
+        // and never renders a parsed tree.
+        XCTAssertTrue(element(AccessibilityID.outputEmptyState, in: app).waitForExistence(timeout: 5))
+        XCTAssertTrue(element(AccessibilityID.resultBanner, in: app).exists)
+        XCTAssertFalse(element(AccessibilityID.outputTree, in: app).exists)
+    }
+
+    @MainActor
+    func testClearResetsEditor() {
+        let app = launch(["-uiTestStub", "valid", "-uiTestSeedText", "{\"a\": 1}"])
+
+        let editor = app.textViews[AccessibilityID.jsonEditor]
+        XCTAssertTrue(editor.waitForExistence(timeout: 5))
+
+        app.buttons[AccessibilityID.clearButton].click()
+
+        XCTAssertEqual(editor.value as? String, "")
+        XCTAssertFalse(app.buttons[AccessibilityID.parseButton].isEnabled)
+    }
+
+    @MainActor
+    func testPastePopulatesEditor() {
+        let app = launch([
+            "-uiTestStub", "valid",
+            "-uiTestSeedPasteboard", "{\"pasted\": true}"
+        ])
+
+        let editor = app.textViews[AccessibilityID.jsonEditor]
+        XCTAssertTrue(editor.waitForExistence(timeout: 5))
+
+        app.buttons[AccessibilityID.pasteButton].click()
+
+        XCTAssertEqual(editor.value as? String, "{\"pasted\": true}")
+    }
+
+    @MainActor
+    func testKeyAccessibilityIdentifiersArePresent() {
+        let app = launch(["-uiTestStub", "valid"])
+
+        XCTAssertTrue(app.textViews[AccessibilityID.jsonEditor].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons[AccessibilityID.pasteButton].exists)
+        XCTAssertTrue(app.buttons[AccessibilityID.clearButton].exists)
+        XCTAssertTrue(app.buttons[AccessibilityID.parseButton].exists)
     }
 }

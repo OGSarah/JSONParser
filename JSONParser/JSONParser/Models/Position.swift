@@ -5,7 +5,8 @@
 //  Created by Sarah Clark on 11/3/25.
 //
 
-struct Position {
+/// A 1 based line and column cursor used to report where errors occur in the source.
+nonisolated struct Position {
     var line = 1
     var column = 1
 
@@ -17,5 +18,4 @@ struct Position {
             column += 1
         }
     }
-
 }

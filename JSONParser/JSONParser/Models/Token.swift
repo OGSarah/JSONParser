@@ -5,7 +5,8 @@
 //  Created by Sarah Clark on 11/3/25.
 //
 
-enum Token: Equatable {
+/// A single lexical token produced by the ``Lexer``.
+nonisolated enum Token: Equatable {
     case leftBrace, rightBrace
     case leftBracket, rightBracket
     case colon, comma

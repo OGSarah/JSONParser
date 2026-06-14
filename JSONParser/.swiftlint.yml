@@ -1,53 +1,96 @@
-disabled_rules:
-  - todo
-  - empty_count
-  - large_tuple
-  - switch_case_alignment
+# SwiftLint configuration for JSONParser.
+#
+# Tuned for a small, modern SwiftUI codebase: strict thresholds plus a curated
+# set of opt in rules that catch real issues (force unwrapping, implicitly
+# unwrapped optionals, redundant code) without generating churn.
+#
+# Run locally:   cd JSONParser && swiftlint
+# Enforce (CI):  cd JSONParser && swiftlint --strict
 
 opt_in_rules:
-
+  - empty_count
   - empty_string
+  - empty_collection_literal
+  - closure_spacing
+  - closure_end_indentation
+  - collection_alignment
+  - contains_over_filter_count
+  - contains_over_first_not_nil
+  - convenience_type
+  - discouraged_optional_boolean
+  - explicit_init
+  - fatal_error_message
+  - first_where
+  - last_where
+  - force_unwrapping
+  - implicitly_unwrapped_optional
+  - joined_default_parameter
+  - legacy_random
+  - literal_expression_end_indentation
+  - lower_acl_than_parent
+  - modifier_order
+  - operator_usage_whitespace
+  - overridden_super_call
+  - prefer_self_type_over_type_of_self
+  - redundant_nil_coalescing
+  - redundant_type_annotation
+  - sorted_first_last
+  - toggle_bool
+  - unneeded_parentheses_in_closure_argument
+  - vertical_parameter_alignment_on_call
+  - yoda_condition
+
+analyzer_rules:
+  - unused_import
+  - unused_declaration
 
 excluded:
-  - Carthage
-  - Pods
-  - SwiftLint/Common/3rdPartyLib
+  - .build
+  - DerivedData
+  - JSONParser/Assets.xcassets
+  - JSONParser/AppIcon.icon
 
 identifier_name:
-  min_length: 3
-  max_length: 40
+  min_length:
+    warning: 2
+    error: 1
+  max_length:
+    warning: 50
+    error: 60
   excluded:
     - id
-    - f1
-    - f2
-    - f3
+    - to
 
 line_length:
-  warning: 400
-  error: 500
+  warning: 130
+  error: 180
   ignores_function_declarations: true
   ignores_comments: true
   ignores_urls: true
 
 function_body_length:
-  warning: 300
-  error: 500
+  warning: 50
+  error: 80
 
 function_parameter_count:
   warning: 6
   error: 8
 
 type_body_length:
-  warning: 300
-  error: 500
+  warning: 250
+  error: 350
 
 file_length:
-  warning: 1000
-  error: 1500
+  warning: 400
+  error: 600
   ignore_comment_only_lines: true
 
 cyclomatic_complexity:
-  warning: 15
-  error: 25
+  warning: 12
+  error: 20
+
+nesting:
+  type_level:
+    warning: 2
 
 reporter: "xcode"

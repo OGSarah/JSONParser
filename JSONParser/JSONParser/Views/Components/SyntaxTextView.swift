@@ -20,9 +20,16 @@ struct SyntaxTextView: NSViewRepresentable {
         textView.font = NSFont.monospacedSystemFont(ofSize: 14, weight: .regular)
         textView.backgroundColor = NSColor.textBackgroundColor
         textView.textContainer?.lineFragmentPadding = 8
-        textView.textContainer?.containerSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
+        let unbounded = CGFloat.greatestFiniteMagnitude
+        textView.textContainer?.containerSize = NSSize(width: unbounded, height: unbounded)
         textView.isAutomaticQuoteSubstitutionEnabled = false
         textView.isAutomaticDashSubstitutionEnabled = false
+
+        // Expose the editor to assistive technologies and the UI test suite. The
+        // SwiftUI accessibility modifiers do not reach the underlying NSTextView,
+        // so the identifier and label are set directly here.
+        textView.setAccessibilityIdentifier(AccessibilityID.jsonEditor)
+        textView.setAccessibilityLabel("JSON input editor")
 
         context.coordinator.textView = textView
         textView.delegate = context.coordinator
@@ -91,8 +98,9 @@ struct SyntaxTextView: NSViewRepresentable {
                     case .null:
                         textStorage.addAttribute(.foregroundColor, value: NSColor.systemPurple, range: nsRange)
                     case .leftBrace, .rightBrace, .leftBracket, .rightBracket, .colon, .comma:
+                        let mediumFont = NSFont.monospacedSystemFont(ofSize: 14, weight: .medium)
                         textStorage.addAttribute(.foregroundColor, value: NSColor.labelColor, range: nsRange)
-                        textStorage.addAttribute(.font, value: NSFont.monospacedSystemFont(ofSize: 14, weight: .medium), range: nsRange)
+                        textStorage.addAttribute(.font, value: mediumFont, range: nsRange)
                     default:
                         break
                     }
