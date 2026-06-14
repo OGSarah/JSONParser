@@ -1,6 +1,6 @@
 <div align="center">
-  <img src="https://github.com/OGSarah/JSONParser/blob/de5a108f09647cf857f0fc1fde07d050808d78bd/Screenshots/AppIcon.png" width="300" style="border: 3px solid white; border-radius: 15px; vertical-align: middle; margin-right: 20px;">
-  <h1 style="display: inline-block; vertical-align: middle;">JSONParser - macOS App with SwiftUI</h1>
+  <img src="/Screenshots/AppIcon.png" width="300" style="border: 3px solid white; border-radius: 15px; vertical-align: middle; margin-right: 20px;">
+  <h1 style="display: inline-block; vertical-align: middle;">JSONParser</h1>
 </div>
 
 ### Currently WIP
