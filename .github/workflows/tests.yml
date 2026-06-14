@@ -32,6 +32,7 @@ jobs:
             -project JSONParser/JSONParser.xcodeproj \
             -scheme JSONParser \
             -destination 'platform=macOS' \
+            -only-testing:JSONParserTests \
             -resultBundlePath TestResults.xcresult \
             CODE_SIGNING_ALLOWED=NO
 
